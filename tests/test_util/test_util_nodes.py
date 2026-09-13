@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from textwrap import dedent
 from typing import TYPE_CHECKING, Any
 
@@ -10,9 +11,11 @@ from docutils import frontend, nodes
 from docutils.parsers import rst
 from docutils.utils import new_document
 
-from sphinx.transforms import ApplySourceWorkaround
+from sphinx.transforms import ApplySourceWorkaround, DoctestTransform, HandleCodeBlocks
 from sphinx.util.nodes import (
     NodeMatcher,
+    _is_doctest_block,
+    _parse_colwidth,
     apply_source_workaround,
     clean_astext,
     extract_messages,
@@ -97,6 +100,76 @@ def test_NodeMatcher():
     # search with Any does not match to Text node
     matcher = NodeMatcher(blah=Any)
     assert len(list(doctree.findall(matcher))) == 0
+
+
+def test_is_doctest_block() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', PendingDeprecationWarning)
+        legacy_node = nodes.doctest_block('', '>>> 1 + 1\n2')
+
+    assert _is_doctest_block(legacy_node)
+    assert _is_doctest_block(
+        nodes.literal_block('', '>>> 1 + 1\n2', classes=['code', 'pycon', 'doctest'])
+    )
+    assert not _is_doctest_block(
+        nodes.literal_block('', '>>> 1 + 1\n2', classes=['code', 'pycon'])
+    )
+    assert not _is_doctest_block(
+        nodes.literal_block('', 'text', classes=['code', 'doctest'])
+    )
+    assert not _is_doctest_block(nodes.paragraph('', 'text'))
+
+
+def test_doctest_literal_block_transforms() -> None:
+    document = create_new_document()
+    block = nodes.literal_block(
+        '', '>>> 1 + 1\n2', classes=['code', 'pycon', 'doctest']
+    )
+    quote = nodes.block_quote('', block)
+    document += quote
+
+    HandleCodeBlocks(document).apply()
+    DoctestTransform(document).apply()
+
+    assert document[0] is block
+    assert block['language'] == 'pycon'
+
+    explicit_language = nodes.literal_block(
+        '',
+        '>>> 1 + 1\n2',
+        classes=['code', 'pycon', 'doctest'],
+        language='custom',
+    )
+    document += explicit_language
+    DoctestTransform(document).apply()
+    assert explicit_language['language'] == 'custom'
+
+
+@pytest.mark.parametrize(
+    ('value', 'expected'),
+    [
+        (1, 1),
+        (10, 10),
+        ('1', 1),
+        ('10', 10),
+        ('*', 1),
+        ('1*', 1),
+        ('10*', 10),
+    ],
+)
+def test_parse_colwidth(value: object, expected: int) -> None:
+    assert _parse_colwidth(value) == expected
+
+
+@pytest.mark.parametrize(
+    'value',
+    [0, -1, '0', '-1', '', '1.5', '1.5*', 1.0, 1.5, True, None],
+)
+def test_parse_colwidth_invalid(value: object) -> None:
+    with pytest.raises(
+        ValueError, match='column width must be a positive integral proportion'
+    ):
+        _parse_colwidth(value)
 
 
 @pytest.mark.parametrize(

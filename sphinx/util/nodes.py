@@ -36,6 +36,39 @@ explicit_title_re = re.compile(r'^(.+?)\s*(?<!\x00)<([^<]*?)>$', re.DOTALL)
 caption_ref_re = explicit_title_re  # b/w compat alias
 
 
+def _is_doctest_block(node: Node) -> bool:
+    """Return whether *node* represents a reStructuredText doctest block."""
+    if isinstance(node, nodes.doctest_block):
+        return True
+    if not isinstance(node, nodes.literal_block):
+        return False
+
+    classes = cast('list[str]', node.get('classes', []))
+    return 'doctest' in classes and 'pycon' in classes
+
+
+def _parse_colwidth(value: object) -> int:
+    """Return a positive integral column width from a node attribute."""
+    if isinstance(value, str):
+        if value == '*':
+            width = 1
+        else:
+            measure = value.removesuffix('*')
+            try:
+                width = int(measure)
+            except ValueError:
+                width = 0
+    elif isinstance(value, int) and not isinstance(value, bool):
+        width = value
+    else:
+        width = 0
+
+    if width <= 0:
+        msg = f'column width must be a positive integral proportion, got {value!r}'
+        raise ValueError(msg)
+    return width
+
+
 class NodeMatcher[N: Node]:
     """A helper class for Node.findall().
 
