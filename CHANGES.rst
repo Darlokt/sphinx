@@ -7,7 +7,7 @@ Bugs fixed
 * #14675: viewcode: Do not generate module pages or index entries when no
   documented objects link to them.
   Patch by Kilian Paul
-  
+
 * #14465: LaTeX: PDF build crash since LaTeX June 2026 release if tables are
   styled with ``'colorrows'`` (which is the default).
   Patch by Jean-François B.
