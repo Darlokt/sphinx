@@ -4,7 +4,7 @@ Release 9.1.1 (in development)
 Bugs fixed
 ----------
 
-* Support the doctest node and table column-width representations used by
+* #14680: Support the doctest node and table column-width representations used by
   Docutils 1.0 development versions.
   Patch by Kilian Paul
 
