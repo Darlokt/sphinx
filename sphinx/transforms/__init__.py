@@ -282,6 +282,8 @@ class ExtraTranslatableNodes(SphinxTransform):
             return
 
         def is_translatable_node(node: Node) -> TypeIs[nodes.Element]:
+            if isinstance(node, nodes.literal_block) and _is_doctest_block(node):
+                return 'doctest-block' in targets
             return isinstance(node, target_nodes)
 
         for node in self.document.findall(is_translatable_node):
