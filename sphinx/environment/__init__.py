@@ -76,7 +76,7 @@ default_settings: dict[str, Any] = {
 
 # This is increased every time an environment attribute is added
 # or changed to properly invalidate pickle files.
-ENV_VERSION = 66
+ENV_VERSION = 67
 
 # config status
 CONFIG_UNSET = -1
