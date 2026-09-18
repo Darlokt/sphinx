@@ -47,6 +47,24 @@ def _is_doctest_block(node: Node) -> bool:
     return 'doctest' in classes and 'pycon' in classes
 
 
+def _parse_colwidth(value: object) -> int:
+    """Return a positive integral column width from a node attribute."""
+    # TODO: This integral-only conversion is temporary. Preserve fractional
+    # proportions once the text, LaTeX, and Texinfo writers support float widths.
+    msg = f'column width must be a positive integer, got {value!r}'
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise TypeError(msg)
+
+    try:
+        width = int(value)
+    except ValueError:
+        raise ValueError(msg) from None
+
+    if width <= 0:
+        raise ValueError(msg)
+    return width
+
+
 class NodeMatcher[N: Node]:
     """A helper class for Node.findall().
 

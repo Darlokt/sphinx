@@ -21,6 +21,7 @@ from sphinx.transforms import (
 from sphinx.util.nodes import (
     NodeMatcher,
     _is_doctest_block,
+    _parse_colwidth,
     apply_source_workaround,
     clean_astext,
     extract_messages,
@@ -177,6 +178,34 @@ def test_extra_translatable_nodes_with_native_doctest(
 
     assert doctest.get('translatable', False) is doctest_is_translatable
     assert literal.get('translatable', False) is literal_is_translatable
+
+
+@pytest.mark.parametrize(
+    ('value', 'expected'),
+    [
+        (1, 1),
+        (10, 10),
+        ('1', 1),
+        ('10', 10),
+    ],
+)
+def test_parse_colwidth(value: object, expected: int) -> None:
+    assert _parse_colwidth(value) == expected
+
+
+@pytest.mark.parametrize(
+    'value',
+    [0, -1, '0', '-1', '', '1.5', '1.5*'],
+)
+def test_parse_colwidth_invalid(value: object) -> None:
+    with pytest.raises(ValueError, match='column width must be a positive integer'):
+        _parse_colwidth(value)
+
+
+@pytest.mark.parametrize('value', [1.0, 1.5, True, None])
+def test_parse_colwidth_invalid_type(value: object) -> None:
+    with pytest.raises(TypeError, match='column width must be a positive integer'):
+        _parse_colwidth(value)
 
 
 @pytest.mark.parametrize(
