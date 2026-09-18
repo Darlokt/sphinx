@@ -6,7 +6,7 @@ Bugs fixed
 
 * #14690: Fix test isolation issues caused by shared test directories and
   inherited ``NO_COLOR`` and ``NO_COLOUR`` environment variables.
-  Patch by Kilian Paul.
+  Patch by Kilian Paul
 
 * #14465: LaTeX: PDF build crash since LaTeX June 2026 release if tables are
   styled with ``'colorrows'`` (which is the default).
