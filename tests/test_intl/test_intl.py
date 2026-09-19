@@ -1644,6 +1644,11 @@ def test_additional_targets_should_not_be_translated(app: SphinxTestApp) -> None
     else:
         sp = ' '
 
+    if tuple(map(int, pygments.__version__.split('.')[:2])) >= (2, 21):
+        res = "'result'"
+    else:
+        res = '&#39;result&#39;'
+
     app.build()
     # [literalblock.txt]
     result = (app.outdir / 'literalblock.html').read_text(encoding='utf8')
@@ -1653,7 +1658,7 @@ def test_additional_targets_should_not_be_translated(app: SphinxTestApp) -> None
     assert_count(expected_expr, result, 2)
 
     # ruby code block should not be translated but be highlighted
-    expected_expr = """<span class="s1">&#39;result&#39;</span>"""
+    expected_expr = f"""<span class="s1">{res}</span>"""
     assert_count(expected_expr, result, 1)
 
     # C code block without lang should not be translated and *ruby* highlighted
@@ -1732,6 +1737,13 @@ def test_additional_targets_should_be_translated(app: SphinxTestApp) -> None:
     else:
         sp = ' '
 
+    if tuple(map(int, pygments.__version__.split('.')[:2])) >= (2, 21):
+        home = '"HTTPS://SPHINX-DOC.ORG"'
+        res = "'RESULT'"
+    else:
+        home = '&quot;HTTPS://SPHINX-DOC.ORG&quot;'
+        res = '&#39;RESULT&#39;'
+
     app.build()
     # [literalblock.txt]
     result = (app.outdir / 'literalblock.html').read_text(encoding='utf8')
@@ -1744,7 +1756,7 @@ def test_additional_targets_should_be_translated(app: SphinxTestApp) -> None:
     assert_count(expected_expr, result, 1)
 
     # literalinclude should be translated
-    expected_expr = '<span class="s2">&quot;HTTPS://SPHINX-DOC.ORG&quot;</span>'
+    expected_expr = f'<span class="s2">{home}</span>'
     assert_count(expected_expr, result, 1)
 
     # title should be translated
@@ -1752,7 +1764,7 @@ def test_additional_targets_should_be_translated(app: SphinxTestApp) -> None:
     assert_count(expected_expr, result, 2)
 
     # ruby code block should be translated and be highlighted
-    expected_expr = """<span class="s1">&#39;RESULT&#39;</span>"""
+    expected_expr = f"""<span class="s1">{res}</span>"""
     assert_count(expected_expr, result, 1)
 
     # C code block without lang should be translated and *ruby* highlighted
